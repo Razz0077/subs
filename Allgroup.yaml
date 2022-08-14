@@ -1,0 +1,83 @@
+port: 7890
+socks-port: 7891
+redir-port: 7892
+mixed-port: 7893
+tproxy-port: 7895
+ipv6: false
+mode: rule
+log-level: silent
+allow-lan: true
+external-controller: 0.0.0.0:9090
+secret: ""
+bind-address: "*"
+unified-delay: true
+profile:
+  store-selected: true
+dns:
+  enable: true
+  ipv6: false
+  enhanced-mode: redir-host
+  listen: 0.0.0.0:7874
+  nameserver:
+    - 8.8.8.8
+    - 1.0.0.1
+    - https://dns.google/dns-query
+  fallback:
+    - 1.1.1.1
+    - 8.8.4.4
+    - https://cloudflare-dns.com/dns-query
+    - 112.215.203.254
+  default-nameserver:
+    - 8.8.8.8
+    - 1.1.1.1
+    - 112.215.203.254
+proxies:
+  - {name: trojan-tcp, server: sg2-full.privateip.net, port: 443, type: trojan, password: feb5278e-dbde-4039-a341-54ee26a4d732, skip-cert-verify: true, sni: trouter2-azsc-krce-3-b.trouter.teams.microsoft.com, udp: true}
+  - {name: trojan-tcp 2, server: id-full.privateip.net, port: 443, type: trojan, password: 4d6a8346-679e-482c-bfeb-3f6db3eb8253, skip-cert-verify: true, sni: dl.google.com, udp: true}
+  - {name: sxtcp-hardxx, server: sgl-2.herbalv2ray.me, port: 443, type: vmess, uuid: 4d6fb3be-1581-4f5e-a129-181e527c96f1, alterId: 0, cipher: auto, tls: true, skip-cert-verify: true, servername: web.web.whatsapp.com, network: ws, ws-opts: {path: /herbalserver, headers: {Host: web.web.whatsapp.com}}, udp: true}
+  - {name: sxtcp-hardxx 2, server: 104.20.74.141, port: 80, type: vmess, uuid: 4d6fb3be-1581-4f5e-a129-181e527c96f1, alterId: 0, cipher: auto, tls: false, skip-cert-verify: true, servername: sgl-2.herbalv2ray.me, network: ws, ws-opts: {path: /herbalserver, headers: {Host: sgl-2.herbalv2ray.me}}, udp: true}
+  - {name: jupitervpn-1122, server: sg1.jupitervpn.me, port: 443, type: vmess, uuid: 38513dea-7704-41ea-a17b-2e69ef84948a, alterId: 0, cipher: auto, tls: true, skip-cert-verify: true, servername: trouter2-azsc-krce-3-b.trouter.teams.microsoft.com, network: ws, ws-opts: {path: /vmess/, headers: {Host: sg1.jupitervpn.me}}, udp: true}
+  - {name: jupitervpn-1133, server: 104.20.74.141, port: 80, type: vmess, uuid: 74c47662-d196-4b07-a883-e8119cb67067, alterId: 0, cipher: auto, tls: false, skip-cert-verify: true, servername: sg1.jupitervpn.me, network: ws, ws-opts: {path: /vmess/, headers: {Host: sg1.jupitervpn.me}}, udp: true}
+  - {name: id-sanggoro.bypass.id, server: 104.20.74.141, port: 443, type: trojan, password: dbe29bf0-028d-11ed-9d63-1577c1651679, skip-cert-verify: true, sni: id-sanggoro.bypass.id, network: ws, ws-opts: {path: /howdy, headers: {Host: id-sanggoro.bypass.id}}, udp: true}
+proxy-groups:
+  - name: FASTSSH-SSHKIT-HOWDY
+    type: select
+    proxies:
+      - trojan-tcp
+      - trojan-tcp 2
+      - sxtcp-hardxx
+      - sxtcp-hardxx 2
+      - jupitervpn-1122
+      - jupitervpn-1133
+      - id-sanggoro.bypass.id
+      - LOAD-BALANCE
+      - BEST-PING
+      - DIRECT
+  - name: LOAD-BALANCE
+    type: load-balance
+    strategy: consistent-hashing
+    url: http://hi.bonds.id/ping
+    interval: 300
+    proxies:
+      - trojan-tcp
+      - trojan-tcp 2
+      - sxtcp-hardxx
+      - sxtcp-hardxx 2
+      - jupitervpn-1122
+      - jupitervpn-1133
+      - id-sanggoro.bypass.id
+  - name: BEST-PING
+    type: url-test
+    url: http://hi.bonds.id/ping
+    interval: 300
+    tolerance: 50
+    proxies:
+      - trojan-tcp
+      - trojan-tcp 2
+      - sxtcp-hardxx
+      - sxtcp-hardxx 2
+      - jupitervpn-1122
+      - jupitervpn-1133
+      - id-sanggoro.bypass.id
+rules:
+  - MATCH,LOAD-BALANCE
